@@ -1,0 +1,1008 @@
+/* --- 変数定義 (★v9：色定義変更) --- */
+:root {
+    /* 配色 */
+    --color-bg-dark: #0d1b2a;
+    --color-bg-medium: #1b263b;
+    --color-bg-light: #415a77;
+    --color-border: #778da9;
+    --color-text: #e0e1dd;
+    --color-accent: #61C9A8; 
+    --color-shadow: rgba(97, 201, 168, 0.5);
+
+    /* ★v9変更：施肥ボタン色 */
+    --color-green: #28a745;
+    --color-purple: #6f42c1;
+    --color-orange: #fd7e14;
+    
+    /* ★v9追加：温度ボタン色（青→赤のグラデーション） */
+    --color-temp-1: #0D47A1; /* 深い青 */
+    --color-temp-2: #1976D2; /* 青 */
+    --color-temp-3: #26C6DA; /* シアン */
+    --color-temp-4: #FFA726; /* オレンジ */
+    --color-temp-5: #D32F2F; /* 赤 */
+
+
+    /* サイズ (v7から変更なし) */
+    --font-size-base: clamp(16px, 3.5vmin, 26px);
+    --font-size-small: clamp(14px, 3vmin, 22px);
+    --font-size-large: clamp(20px, 5vmin, 36px);
+    --padding-base: clamp(12px, 3vmin, 30px);
+    --padding-small: clamp(8px, 2vmin, 18px);
+    --gap-base: clamp(8px, 1.5vmin, 15px);
+    --slider-height: clamp(10px, 2.5vmin, 20px);
+    --thumb-size: clamp(24px, 5vmin, 35px);
+    --hint-row-h: clamp(56px, 12vmin, 88px);
+}
+
+/* --- 全体の設定 --- */
+body, html {
+    margin: 0; padding: 0; height: 100vh; width: 100vw;
+    font-family: 'Share Tech Mono', 'Orbitron', monospace;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text);
+    overflow: hidden;
+    box-sizing: border-box; /* 全体にbox-sizing適用 */
+}
+*, *::before, *::after {
+    box-sizing: border-box; /* 全要素にbox-sizing適用 */
+}
+
+/* --- ゲームコンテナ全体 --- */
+.game-container {
+    display: flex; flex-direction: column; height: 100vh;
+    background-color: var(--color-bg-medium);
+    border: 2px solid var(--color-border);
+    box-sizing: border-box;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5) inset;
+    margin: 0;
+    padding: 0;
+}
+/* overlayの基準にする */
+.game-container { position: relative; }
+
+/* --- 1. 上部ヘッダー --- */
+.header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1vh 2vh;
+    background-color: var(--color-bg-dark);
+    border-bottom: 2px solid var(--color-border);
+    flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10;
+    height: 8vh; /* ヘッダー8vh */
+    box-sizing: border-box; /* パディングとボーダーを高さに含める */
+}
+.header-item {
+    font-size: var(--font-size-base); font-weight: bold;
+    padding: var(--padding-small) var(--padding-base);
+    text-shadow: 0 0 5px var(--color-shadow);
+}
+
+/* パラメータ表示のグループ化 */
+#parameters {
+    display: flex;
+    gap: var(--padding-base);
+    align-items: center;
+}
+
+.resource-group {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--padding-small) * 0.5);
+    align-items: flex-end;
+}
+
+.resource-group > div {
+    white-space: nowrap;
+}
+
+.status-group {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--padding-small) * 0.5);
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--padding-small) * 0.5);
+    min-width: 120px;
+}
+
+.status-label {
+    font-size: var(--font-size-small);
+    flex-shrink: 0;
+}
+
+.status-gauge {
+    flex: 1;
+    height: 12px;
+    background-color: rgba(13, 27, 42, 0.8);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.gauge-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-accent), #4a9d8a);
+    transition: width 0.3s ease;
+    border-radius: 6px;
+}
+
+.status-item:nth-child(1) .gauge-fill {
+    background: linear-gradient(90deg, #ff4444, #cc3333);
+}
+
+.status-item:nth-child(2) .gauge-fill {
+    background: linear-gradient(90deg, #4169e1, #3152b5);
+}
+
+.status-value {
+    font-size: var(--font-size-small);
+    min-width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+}
+/* タイマーの装飾 */
+#timer { position: relative; overflow: visible; text-align: center; padding-top: calc(var(--font-size-small) + 6px); padding-right: calc(var(--font-size-small) * 3); }
+#timer .timer-number { display: block; font-size: var(--font-size-large); line-height: 1; }
+#timer .timer-label-top { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: var(--font-size-small); opacity: 0.8; }
+#timer .timer-label-right { position: absolute; right: 6px; bottom: 4px; top: auto; transform: none; font-size: var(--font-size-small); opacity: 0.8; }
+
+/* --- 2. 中央メイン（モニター） --- */
+.main-content {
+    height: 40vh; /* モニター40vh */
+    flex-shrink: 0; 
+    overflow: hidden; position: relative;
+    box-sizing: border-box; /* パディングとボーダーを高さに含める */
+}
+.monitor-wrapper {
+    display: flex; width: 100%; height: 100%;
+    overflow-x: hidden; /* スクロールを無効化 */
+    scrollbar-width: none; -ms-overflow-style: none;
+    position: relative; /* 位置指定の基準 */
+}
+.monitor-wrapper::-webkit-scrollbar { display: none; }
+.monitor-screen {
+    width: 100%; height: 100%; flex-shrink: 0;
+    scroll-snap-align: center;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    font-size: var(--font-size-large); font-weight: bold;
+    text-shadow: 0 0 10px var(--color-shadow), 0 0 20px var(--color-shadow);
+    box-sizing: border-box; position: absolute; /* 絶対配置で重ねる */
+    left: 0; top: 0; /* 左上基準 */
+    background-color: var(--color-bg-medium);
+    transition: transform 0.3s ease; /* スムーズな切り替え */
+    background-image:
+        repeating-linear-gradient(to right,
+            var(--color-bg-light) 0px, var(--color-bg-light) 2px,    
+            var(--color-bg-dark) 2px, var(--color-bg-dark) 4px,
+            transparent 4px, transparent 200px),
+        repeating-linear-gradient(to bottom,
+            transparent 0px, transparent 58px,             
+            var(--color-bg-dark) 58px, var(--color-bg-dark) 60px, 
+            transparent 60px);
+}
+.monitor-name, .monitor-management-level, .monitor-damage-scale, .monitor-status, .monitor-ai, .monitor-feedback { /* (v7から変更なし) */
+    z-index: 1; 
+}
+.monitor-name {
+    position: absolute;
+    bottom: calc(var(--padding-base) * 0.8);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(13, 27, 42, 0.9); 
+    padding: var(--padding-base); border-radius: 5px;
+    border: 2px solid var(--color-accent);
+    box-shadow: 0 0 15px var(--color-shadow) inset, 0 0 10px var(--color-shadow);
+    white-space: nowrap; /* 改行させない */
+}
+.monitor-management-level {
+    position: absolute;
+    top: calc(var(--padding-base) * 0.8);
+    left: calc(var(--padding-base) * 0.8);
+    font-size: var(--font-size-small);
+    color: var(--color-accent);
+    background-color: rgba(13, 27, 42, 0.9);
+    padding: var(--padding-small) var(--padding-base);
+    border-radius: 5px;
+    border: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+.monitor-damage-scale {
+    position: absolute;
+    top: calc(var(--padding-base) * 0.8);
+    right: calc(var(--padding-base) * 0.8);
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    background-color: rgba(13, 27, 42, 0.9);
+    padding: var(--padding-small) var(--padding-base);
+    border-radius: 5px;
+    border: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+.monitor-status {
+    font-size: var(--font-size-base); color: var(--color-accent);
+    margin-top: var(--padding-base);
+    background-color: rgba(13, 27, 42, 0.9);
+    padding: var(--padding-small) var(--padding-base);
+    border-radius: 5px;
+}
+.monitor-ai {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: var(--font-size-small);
+    color: rgba(224, 225, 221, 0.7);
+    font-style: italic;
+    background-color: rgba(13, 27, 42, 0.7);
+    padding: var(--padding-small) var(--padding-base);
+    border-radius: 5px;
+    max-width: 85%;
+    text-align: center;
+    min-height: 3em;
+}
+.monitor-feedback {
+    position: absolute; bottom: 10%; left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(224, 225, 221, 0.95);
+    color: var(--color-bg-dark);
+    padding: var(--padding-small) var(--padding-base);
+    border-radius: 5px; font-size: var(--font-size-base);
+    font-weight: bold; opacity: 0;
+    transition: opacity 0.5s ease-out; pointer-events: none;
+}
+.monitor-feedback.active { opacity: 1; }
+
+/* --- 3. 下部コントロール --- */
+.controls {
+    height: 52vh; /* コントロール52vh */
+    padding: 1vh;
+    background-color: var(--color-bg-dark);
+    border-top: 2px solid var(--color-border);
+    display: grid; 
+    gap: 1vh;
+    z-index: 10; 
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+    grid-template-rows: repeat(4, 1fr); /* 4段を均等分割 */
+    min-height: 0;
+    box-sizing: border-box; /* パディングとボーダーを高さに含める */
+    position: relative; /* シャッター用 */
+}
+
+/* シャッター要素 */
+/*
+.controls::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateY(-100%);
+    transition: transform 0.2s ease;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg,
+        #505050 0px,
+        #404040 20px,
+        #505050 40px,
+        #454545 50px,
+        #404040 60px,
+        #3a3a3a 70px,
+        #454545 80px
+    );
+    border-top: 2px solid #606060;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.controls.shutter-closed::before {
+    transform: translateY(0);
+    pointer-events: auto;
+}
+*/
+.controls::-webkit-scrollbar { display: none; }
+.controls > * { min-height: 0; }
+.control-row {
+    display: grid; 
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--gap-base);
+    height: 100%; 
+    min-height: 0;
+}
+.control-row:first-child { height: 100%; align-items: stretch; }
+.control-row:first-child .control-button { padding: 8px 12px; height: 100%; }
+
+/* 操作ボタンの基本スタイル */
+.control-button {
+    padding: var(--padding-base); 
+    font-size: var(--font-size-base);
+    font-family: 'Share Tech Mono', monospace; font-weight: bold;
+    background-image: linear-gradient(to bottom, var(--color-bg-light), var(--color-bg-medium));
+    color: var(--color-text); border: 1px solid var(--color-border);
+    border-radius: 5px; text-align: center; cursor: pointer;
+    user-select: none; transition: all 0.1s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3), 0 0 3px var(--color-shadow) inset;
+    height: 100%;
+    box-sizing: border-box; 
+    display: flex; 
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center; 
+    line-height: 1.4; /* ★v9追加：改行時の行間 */
+    min-width: 0;
+}
+.control-button span { display: block; }
+.control-button:active {
+    background-image: linear-gradient(to top, var(--color-bg-light), var(--color-bg-medium));
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 0 5px var(--color-accent) inset;
+}
+.control-button:disabled {
+    background-image: none; background-color: #333;
+    color: #888; border-color: #555;
+    cursor: not-allowed;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.5) inset;
+}
+
+/* div要素の無効化スタイル（施肥ボタンと同じスタイル） */
+.control-button.disabled {
+    cursor: not-allowed !important; 
+    opacity: 0.3 !important; 
+    background-blend-mode: normal !important; /* 無効時は光沢不要 */
+}
+        
+.control-panel {
+    background-color: var(--color-bg-medium);
+    padding: 1vh; 
+    border-radius: 5px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3) inset;
+    height: 100%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto 1fr; /* ラベル + コンテンツ */
+    align-items: stretch;
+    min-height: 0;
+}
+.control-panel > label { align-self: start; }
+/* コンテンツ領域は縦に広げる */
+.control-panel > :not(label) { height: 100%; min-height: 0; }
+.control-panel label {
+    /* (v7から変更なし) */
+    display: block; 
+    margin-bottom: var(--padding-small);
+    font-weight: bold; text-align: center;
+    color: var(--color-accent); 
+    font-size: var(--font-size-base);
+}
+        
+/* --- ★v9修正：施肥ボタン群 --- */
+.fertilizer-options {
+    display: grid; 
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1vh;
+    align-items: stretch; /* 縦方向に埋める */
+    height: 100%;
+}
+.fert-btn {
+    font-size: var(--font-size-base);
+    font-weight: bold; 
+    color: var(--color-text); 
+    border-radius: 5px;
+    cursor: pointer; 
+    transition: all 0.1s ease;
+    height: 100%; /* 縦方向に埋める */
+    box-sizing: border-box;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-width: 0;
+    outline: none; /* フォーカス時のアウトラインを削除 */
+            
+    /* ★v9追加：ガラス風スタイル */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    /* 上からの光沢 + ボタン色 */
+    background-blend-mode: overlay;
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3), 0 1px 2px rgba(255,255,255,0.2) inset;
+}
+.fert-btn:active { 
+    transform: translateY(1px); 
+    background-image: linear-gradient(to top, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+}
+.fert-btn:disabled { 
+    cursor: not-allowed; 
+    opacity: 0.3; 
+    background-blend-mode: normal; /* 無効時は光沢不要 */
+}
+/* ★v9変更：色指定 */
+#fert-green { background-color: var(--color-green); }
+#fert-purple { background-color: var(--color-purple); }
+#fert-orange { background-color: var(--color-orange); }
+
+/* --- 日光調整 --- */
+input[type="range"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2vh; /* スライダー2vh */
+    background: linear-gradient(to right, #000000 0%, #ffff00 100%);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    padding: 0; 
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: var(--thumb-size); 
+    height: var(--thumb-size); 
+    background: var(--color-accent);
+    border: 2px solid var(--color-text);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--color-shadow);
+}
+input[type="range"]::-moz-range-thumb {
+    width: var(--thumb-size); 
+    height: var(--thumb-size); 
+    background: var(--color-accent);
+    border: 2px solid var(--color-text);
+    border-radius: 50%;
+    cursor: pointer;
+}
+        
+/* --- ★v9修正：温度調整 --- */
+.temp-options {
+    display: grid; 
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1vh;
+    align-items: stretch; 
+    height: 100%;
+}
+.temp-btn {
+    font-size: var(--font-size-base); 
+    font-family: 'Orbitron', sans-serif;
+    padding: var(--padding-small) var(--padding-base);
+    /* background-color: var(--color-bg-light); (削除) */
+    border: 2px solid var(--color-border);
+    color: var(--color-text); 
+    border-radius: 5px;
+    cursor: pointer; 
+    transition: all 0.1s ease;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    text-align: center;
+    opacity: 0.95;
+}
+/* スライダーは行の中央に配置 */
+.control-panel input[type="range"] { align-self: center; }
+/* ★v9追加：ボタンの個別色（青→赤の連続感を強めるグラデーション） */
+.temp-btn[data-temp="1"] { background-image: linear-gradient(135deg, #0D47A1, #1976D2); }
+.temp-btn[data-temp="2"] { background-image: linear-gradient(135deg, #1976D2, #26C6DA); }
+.temp-btn[data-temp="3"] { background-image: linear-gradient(135deg, #26C6DA, #4DD0E1); }
+.temp-btn[data-temp="4"] { background-image: linear-gradient(135deg, #FFA726, #FB8C00); }
+.temp-btn[data-temp="5"] { background-image: linear-gradient(135deg, #D32F2F, #F44336); }
+        
+.temp-btn.active {
+    /* background-color: var(--color-accent); (削除) */
+    color: var(--color-text); /* 色付きボタンでも白文字を維持 */
+    font-weight: bold; 
+    box-shadow: 0 0 10px var(--color-shadow), 0 0 8px rgba(255,255,255,0.6) inset, 0 0 0 3px rgba(255,255,255,0.9);
+    border-color: #ffffff;
+    opacity: 1;
+    /* レイアウトを崩さないため拡大は行わない */
+}
+
+/* --- 結果画面のスタイル --- */
+.result-panel {
+    max-width: min(1200px, 95vw);
+    max-height: 95vh; /* 画面高さの95%に制限（評価削除により余裕ができた） */
+    background: linear-gradient(135deg, var(--color-bg-medium), var(--color-bg-light));
+    border: 3px solid var(--color-accent);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 20px var(--color-shadow);
+    overflow-y: auto; /* 縦スクロール可能（念のため） */
+}
+
+.result-title {
+    font-size: clamp(20px, 5vmin, 28px); /* サイズを縮小 */
+    font-weight: bold;
+    color: var(--color-accent);
+    text-shadow: 0 0 10px var(--color-shadow);
+    margin-bottom: 0.3rem; /* マージンを縮小 */
+}
+
+.result-subtitle {
+    font-size: clamp(14px, 3.5vmin, 20px); /* サイズを縮小 */
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+.result-section {
+    margin-bottom: 1rem; /* マージンを縮小 */
+    padding: 0.8rem; /* パディングを縮小 */
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0; /* パディングを縮小 */
+    font-size: clamp(14px, 3.5vmin, 18px); /* サイズを縮小 */
+}
+
+.result-row.highlight {
+    background: linear-gradient(90deg, rgba(97, 201, 168, 0.1), transparent);
+    border-radius: 5px;
+    padding: 0.6rem; /* パディングを縮小 */
+    margin: 0.2rem 0; /* マージンを縮小 */
+    border-left: 4px solid var(--color-accent);
+}
+
+.result-row.status-change {
+    padding: 0.4rem; /* パディングを縮小 */
+    border-radius: 5px;
+    margin: 0.1rem 0; /* マージンを縮小 */
+}
+
+.result-label {
+    font-weight: bold;
+    color: var(--color-text);
+}
+
+.result-value {
+    font-weight: bold;
+    font-family: 'Orbitron', monospace;
+    color: var(--color-accent);
+    text-shadow: 0 0 5px var(--color-shadow);
+}
+
+.section-title {
+    font-size: clamp(16px, 4vmin, 22px); /* サイズを縮小 */
+    color: var(--color-accent);
+    margin-bottom: 0.6rem; /* マージンを縮小 */
+    text-align: center;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.3rem; /* パディングを縮小 */
+}
+
+
+/* 植物状態スライダー */
+.plant-status-slider {
+    position: relative;
+    height: 100px; /* 高さを縮小 */
+    overflow: hidden;
+    margin-top: 0.6rem; /* マージンを縮小 */
+    border-radius: 10px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--color-border);
+}
+
+.plant-status-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 0.8rem; /* パディングを縮小 */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.plant-status-item.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.plant-status-item.prev {
+    transform: translateX(-100%);
+}
+
+.plant-status-name {
+    font-weight: bold;
+    color: var(--color-accent);
+    font-size: clamp(16px, 4vmin, 20px); /* サイズを縮小 */
+    margin-bottom: 0.3rem; /* マージンを縮小 */
+    text-shadow: 0 0 5px var(--color-shadow);
+}
+
+.plant-status-state {
+    font-size: clamp(14px, 3.5vmin, 18px); /* サイズを縮小 */
+    padding: 0.4rem 0.8rem; /* パディングを縮小 */
+    border-radius: 20px;
+    font-weight: bold;
+    min-width: 100px; /* 最小幅を縮小 */
+}
+
+.plant-status-state.harvested {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+}
+
+.plant-status-state.not-harvested {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    box-shadow: 0 0 10px rgba(108, 117, 125, 0.3);
+}
+
+.plant-status-state.exploded {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    animation: pulse 1s infinite;
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.6);
+}
+
+/* スライダーインジケーター */
+.slider-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem; /* ギャップを縮小 */
+    margin-top: 0.6rem; /* マージンを縮小 */
+}
+
+.slider-indicator {
+    width: 10px; /* サイズを縮小 */
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.slider-indicator.active {
+    background: var(--color-accent);
+    box-shadow: 0 0 10px var(--color-shadow);
+    transform: scale(1.2);
+}
+
+.slider-indicator:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+
+/* 数値アニメーション */
+.result-value.animating {
+    animation: countUp 1.5s ease-out;
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* HP/正気度変化の色分け */
+.result-value.positive {
+    color: #28a745;
+}
+
+.result-value.negative {
+    color: #dc3545;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* --- Fullscreen Screens --- */
+.fullscreen-screen { position: fixed; inset: 0; background: var(--color-bg-dark); display: none; z-index: 1000; padding: var(--padding-base); }
+.fullscreen-screen[aria-hidden="false"] { display: block; }
+.fullscreen-screen[inert] { pointer-events: none; }
+.screen-panel { max-width: min(1000px, 96vw); margin: 0 auto; background: var(--color-bg-medium); border: 2px solid var(--color-border); border-radius: 8px; padding: calc(var(--padding-base) * 1.4); box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: clamp(18px, 4.2vmin, 24px); }
+.panel-header { font-weight: bold; font-size: var(--font-size-large); margin-bottom: var(--padding-small); text-align: center; }
+.panel-body { display: grid; gap: var(--gap-base); }
+.result-row { display: flex; justify-content: space-between; }
+.panel-footer { margin-top: var(--padding-base); display: flex; justify-content: flex-end; gap: var(--gap-base); }
+.panel-btn { 
+    padding: calc(var(--padding-small) * 0.8) calc(var(--padding-base) * 0.8); /* パディングを縮小 */
+    border: 1px solid var(--color-border); 
+    border-radius: 6px; 
+    background: var(--color-bg-light); 
+    color: var(--color-text); 
+    cursor: pointer; 
+    font-size: clamp(14px, 3.5vmin, 18px); /* フォントサイズを縮小 */
+}
+.panel-btn.primary { background: var(--color-accent); color: #0d1b2a; font-weight: bold; }
+.money-display { text-align: center; font-weight: bold; }
+.shop-list { display: flex; flex-direction: column; gap: 4px; }
+.shop-item { display: grid; grid-template-columns: 1fr auto auto; gap: var(--gap-base); background: rgba(0,0,0,0.25); border: 1px solid var(--color-border); border-radius: 10px; padding: 2px; width: 100%; box-sizing: border-box; }
+.shop-item:not(.purchased) { 
+    align-items: center; 
+    height: 60px; /* 購入前は固定高さ */
+    min-height: 60px;
+    max-height: 60px;
+}
+.shop-item.purchased { 
+    grid-template-columns: 1fr; 
+    gap: 0; 
+    align-items: start; /* stretchをやめてstartに変更 */
+    height: fit-content; /* 内容に合わせて最小限の高さ */
+    min-height: auto;
+    max-height: none; /* 最大高さ制限を解除 */
+}
+.shop-item .buy-btn { padding: calc(var(--padding-small) * 1.1) calc(var(--padding-base) * 1.1); border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-accent); color: #0d1b2a; cursor: pointer; font-size: clamp(18px, 4.2vmin, 24px); }
+
+/* --- In-game Overlay --- */
+.overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: block; z-index: 500; padding: var(--padding-base); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 220ms ease, visibility 0s linear 220ms; }
+.overlay.is-open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 220ms ease; }
+.overlay-content { position: absolute; inset: 4px 8px; background: var(--color-bg-medium); border: 2px solid var(--color-border); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(-10vh); opacity: 0; transition: transform 220ms ease, opacity 220ms ease; display: grid; grid-template-rows: auto 1fr auto; }
+.overlay.is-open .overlay-content { transform: translateY(0); opacity: 1; }
+.hint-content { white-space: pre-wrap; font-family: 'Share Tech Mono', monospace; background: transparent; border: none; padding: 0.05em var(--padding-small) 0.02em; width: 100%; box-sizing: border-box; display: block; margin: 0; font-size: clamp(14px, 3.6vmin, 20px); line-height: 1.26; }
+
+/* 管理方法のロック状態（1未購入時は2,3,4をロック表示） */
+.shop-item[data-locked="1"] { opacity: 0.55; }
+.shop-item[data-locked="1"] .buy-btn { cursor: not-allowed; filter: grayscale(85%); }
+.shop-item .buy-btn:disabled { cursor: not-allowed; filter: grayscale(85%); opacity: 0.7; }
+.overlay-header { font-weight: bold; font-size: var(--font-size-large); padding: calc(var(--padding-small) * 0.8) var(--padding-base); text-align: center; border-bottom: 1px solid var(--color-border); }
+.overlay-body { overflow: auto; padding: 2px; display: flex; flex-direction: column; gap: 0; }
+.shop-item.purchased { 
+    grid-template-columns: 1fr; 
+    gap: 0; 
+    min-height: auto; /* 購入済みは高さを自動調整 */
+    height: auto;
+}
+.shop-item.purchased .hint-content { 
+    padding: var(--padding-small); 
+    height: fit-content; /* 内容に合わせて最小限の高さ */
+    min-height: auto;
+    max-height: none; /* 最大高さ制限を解除 */
+    white-space: pre-wrap; /* 改行を保持 */
+    word-wrap: break-word; /* 長い単語を折り返し */
+    line-height: 1.4; /* 行間を適切に設定 */
+    display: block; /* ブロック要素として確実に */
+}
+.overlay-footer { padding: calc(var(--padding-small) * 0.8) var(--padding-base); border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+
+/* --- 全画面機能のスタイル --- */
+.fullscreen-hint {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--color-accent);
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.fullscreen-hint.show {
+    opacity: 1;
+}
+
+/* --- 植物選択画面のスタイル --- */
+.plant-selection-panel {
+    max-width: min(1400px, 98vw);
+    max-height: 95vh;
+    background: linear-gradient(135deg, var(--color-bg-medium), var(--color-bg-light));
+    border: 3px solid var(--color-accent);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 30px var(--color-shadow);
+    overflow-y: auto;
+}
+
+.selection-title {
+    font-size: clamp(24px, 6vmin, 32px);
+    font-weight: bold;
+    color: var(--color-accent);
+    text-shadow: 0 0 15px var(--color-shadow);
+    margin-bottom: 0.5rem;
+}
+
+.selection-subtitle {
+    font-size: clamp(14px, 3.5vmin, 18px);
+    color: var(--color-text);
+    opacity: 0.8;
+    font-style: italic;
+}
+
+/* 植物選択グリッドの改善 */
+.plant-selection-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.plant-option {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
+    border: 2px solid var(--color-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    min-height: 120px;
+}
+
+.plant-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.plant-option:hover::before {
+    left: 100%;
+}
+
+.plant-option:hover {
+    background: linear-gradient(135deg, rgba(97, 201, 168, 0.2), rgba(97, 201, 168, 0.1));
+    border-color: var(--color-accent);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.4), 0 0 20px var(--color-shadow);
+}
+
+.plant-option:active {
+    transform: translateY(-2px) scale(1.005);
+}
+
+.plant-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--color-accent), #4a9d8a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin-right: 1.5rem;
+    color: #0d1b2a;
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(97, 201, 168, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.plant-option:hover .plant-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 12px 25px rgba(97, 201, 168, 0.6);
+}
+
+.plant-icon::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--color-accent), transparent, var(--color-accent));
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.plant-option:hover .plant-icon::after {
+    opacity: 1;
+}
+
+.plant-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0; /* テキストの切り詰めを防ぐ */
+}
+
+.plant-difficulty-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.plant-management-level {
+    font-size: clamp(12px, 2.5vmin, 16px);
+    color: var(--color-accent);
+    font-weight: bold;
+    padding: 0.3rem 0.6rem;
+    background: rgba(97, 201, 168, 0.1);
+    border: 1px solid var(--color-accent);
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.plant-damage-scale {
+    font-size: clamp(12px, 2.5vmin, 16px);
+    font-weight: bold;
+    padding: 0.3rem 0.6rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.plant-name {
+    font-weight: bold;
+    font-size: clamp(18px, 4.5vmin, 24px);
+    margin-bottom: 0.8rem;
+    color: var(--color-accent);
+    text-shadow: 0 0 8px var(--color-shadow);
+}
+
+.plant-flavor {
+    font-size: clamp(13px, 3.2vmin, 16px);
+    color: var(--color-text);
+    line-height: 1.6;
+    text-align: left;
+    opacity: 0.9;
+    background: rgba(0,0,0,0.2);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--color-accent);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* 植物が選択できない場合のスタイル */
+.plant-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(50%);
+}
+
+.plant-option.disabled:hover {
+    transform: none;
+    background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
+    border-color: var(--color-border);
+    box-shadow: none;
+}
+
+.plant-option.disabled .plant-icon {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.plant-option.disabled:hover .plant-icon {
+    transform: none;
+}
+
+/* 空の状態のスタイル */
+.plant-selection-grid:empty::after {
+    content: '🌱 追加可能な植物がありません 🌱';
+    display: block;
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-text);
+    font-size: clamp(16px, 4vmin, 20px);
+    opacity: 0.7;
+    font-style: italic;
+}

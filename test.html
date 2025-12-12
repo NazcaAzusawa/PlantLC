@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>管理シミュレーション プロトタイプ v9</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- 外部CSS styles.css を適用（インラインCSSは削除） -->
+</head>
+<body>
+
+    <div class="game-container" id="screen-game">
+        
+        <header class="header">
+            <div id="timer" class="header-item"><span class="timer-label-top">残り</span><span class="timer-number">6.0</span><span class="timer-label-right">時間</span></div>
+            <div id="parameters" class="header-item">
+                <div class="resource-group">
+                    <div id="essence-display">💰0</div>
+                    <div id="money-display">💎100</div>
+                </div>
+                <div class="status-group">
+                    <div class="status-item">
+                        <span class="status-label">❤️</span>
+                        <div class="status-gauge">
+                            <div id="hp-gauge" class="gauge-fill" style="width: 100%"></div>
+                        </div>
+                        <span id="hp-display" class="status-value">100</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">💙</span>
+                        <div class="status-gauge">
+                            <div id="san-gauge" class="gauge-fill" style="width: 100%"></div>
+                        </div>
+                        <span id="san-display" class="status-value">100</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="monitor-wrapper" id="monitorWrapper">
+                </div>
+        </main>
+
+        <footer class="controls">
+            
+            <div class="control-row">
+                <div id="control-water" class="control-button">灌水</div>
+                <div id="control-harvest" class="control-button">採取</div>
+            </div>
+            
+            <div class="control-panel" id="fertilize-panel">
+                <label>施肥</label>
+                <div class="fertilizer-options" id="fertilizer-options">
+                    <button class="fert-btn" id="fert-green" data-color="緑" tabindex="-1">緑</button>
+                    <button class="fert-btn" id="fert-purple" data-color="紫" tabindex="-1">紫</button>
+                    <button class="fert-btn" id="fert-orange" data-color="橙" tabindex="-1">橙</button>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <label for="light-slider">日光調整</label>
+                <input type="range" id="light-slider" min="0" max="100" value="50">
+            </div>
+
+            <div class="control-panel">
+                <label>温度調整</label>
+                <div class="temp-options" id="temp-options">
+                    <button class="temp-btn" data-temp="1">1</button>
+                    <button class="temp-btn" data-temp="2">2</button>
+                    <button class="temp-btn" data-temp="3">3</button>
+                    <button class="temp-btn" data-temp="4">4</button>
+                    <button class="temp-btn" data-temp="5">5</button>
+                </div>
+            </div>
+        </footer>
+
+        <!-- In-game Hint Shop Overlay -->
+        <section id="overlay-shop" class="overlay" aria-hidden="true">
+            <div class="overlay-content">
+                <div class="overlay-header">管理方法ショップ（業務中）</div>
+                <div class="overlay-body">
+                    <div class="shop-list" id="shop-list-ingame"></div>
+                </div>
+                <div class="overlay-footer">
+                    <div class="money-display">所持金: <span id="shop-money-ingame">0</span></div>
+                    <button id="overlay-close" class="panel-btn">閉じる（Esc/↑）</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Fullscreen Screens -->
+    <section id="screen-result" class="fullscreen-screen" aria-hidden="true">
+        <div class="screen-panel result-panel">
+            <div class="panel-header">
+                <div class="result-title">🌱 勤務終了レポート 🌱</div>
+                <div class="result-subtitle">Day <span id="result-day">1</span> の成果</div>
+            </div>
+            <div class="panel-body">
+                <!-- メイン統計 -->
+                <div class="result-section">
+                    <div class="result-row highlight">
+                        <span class="result-label">💰 獲得エッセンス</span>
+                        <span class="result-value" id="result-essence">0</span>
+                    </div>
+                    <div class="result-row highlight">
+                        <span class="result-label">🌿 採取した植物</span>
+                        <span class="result-value" id="result-harvest-count">0</span>
+                    </div>
+                    <div class="result-row highlight">
+                        <span class="result-label">💎 総所持金</span>
+                        <span class="result-value" id="result-money">0</span>
+                    </div>
+                </div>
+                
+                <!-- ステータス変化 -->
+                <div class="result-section">
+                    <div class="result-row status-change">
+                        <span class="result-label">❤️ 体力変化</span>
+                        <span class="result-value" id="result-hp-change">0</span>
+                    </div>
+                    <div class="result-row status-change">
+                        <span class="result-label">💙 正気度変化</span>
+                        <span class="result-value" id="result-san-change">0</span>
+                    </div>
+                </div>
+                
+                <!-- 植物の状態 -->
+                <div class="result-section">
+                    <div class="result-label section-title">🌺 植物の状態</div>
+                    <div id="result-plant-status" class="plant-status-slider">
+                        <!-- 動的に生成される -->
+                    </div>
+                    <div class="slider-indicators" id="plant-slider-indicators">
+                        <!-- 動的に生成される -->
+                    </div>
+                </div>
+                
+            </div>
+            <div class="panel-footer">
+                <button id="result-hp-recovery" class="panel-btn primary">💊 体力回復 (+5)</button>
+                <button id="result-san-recovery" class="panel-btn primary">🧘 正気度回復 (+10%)</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Plant Selection Screen -->
+    <section id="screen-plant-selection" class="fullscreen-screen" aria-hidden="true">
+        <div class="screen-panel plant-selection-panel">
+            <div class="panel-header">
+                <div class="selection-title">🌱 新しい植物を追加 🌱</div>
+                <div class="selection-subtitle">施設に新しい植物を導入しましょう</div>
+            </div>
+            <div class="panel-body">
+                <div class="plant-selection-grid" id="plant-selection-grid">
+                    <!-- 植物選択肢がここに動的に追加される -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- エラーログ表示（スマホデバッグ用） -->
+    <div id="error-console" class="error-console collapsed">
+        <div class="error-console-header">
+            <button id="error-console-toggle" class="error-console-toggle">🐛 エラーログ</button>
+            <button id="error-console-clear" class="error-console-clear">クリア</button>
+        </div>
+        <div id="error-console-content" class="error-console-content"></div>
+    </div>
+
+    <style>
+        .error-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(13, 27, 42, 0.95);
+            border-top: 2px solid #D32F2F;
+            max-height: 40vh;
+            z-index: 10000;
+            transition: max-height 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(10px, 2vmin, 14px);
+        }
+        .error-console.collapsed {
+            max-height: 50px;
+        }
+        .error-console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(211, 47, 47, 0.2);
+            border-bottom: 1px solid #D32F2F;
+        }
+        .error-console-toggle,
+        .error-console-clear {
+            padding: 6px 12px;
+            background: rgba(211, 47, 47, 0.3);
+            border: 1px solid #D32F2F;
+            color: #e0e1dd;
+            cursor: pointer;
+            font-size: clamp(12px, 2.5vmin, 16px);
+            border-radius: 4px;
+            min-height: 32px;
+        }
+        .error-console-toggle:hover,
+        .error-console-clear:hover {
+            background: rgba(211, 47, 47, 0.5);
+        }
+        .error-console-content {
+            overflow-y: auto;
+            max-height: calc(40vh - 50px);
+            padding: 8px;
+            line-height: 1.5;
+        }
+        .error-log-item {
+            margin-bottom: 6px;
+            padding: 6px;
+            border-left: 3px solid #D32F2F;
+            background: rgba(211, 47, 47, 0.1);
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .error-log-item.warn {
+            border-left-color: #FFA726;
+            background: rgba(255, 167, 38, 0.1);
+        }
+        .error-log-item.error {
+            border-left-color: #D32F2F;
+            background: rgba(211, 47, 47, 0.15);
+        }
+        .error-log-time {
+            color: #61C9A8;
+            font-size: 0.9em;
+            margin-right: 8px;
+        }
+    </style>
+
+    <script>
+        // エラーログ表示機能（スマホデバッグ用）
+        (function() {
+            const errorConsole = document.getElementById('error-console');
+            const errorContent = document.getElementById('error-console-content');
+            const toggleBtn = document.getElementById('error-console-toggle');
+            const clearBtn = document.getElementById('error-console-clear');
+            let errorCount = 0;
+
+            function formatTime() {
+                const now = new Date();
+                return now.toLocaleTimeString('ja-JP');
+            }
+
+            function addErrorLog(message, type = 'error') {
+                errorCount++;
+                const logItem = document.createElement('div');
+                logItem.className = `error-log-item ${type}`;
+                const time = formatTime();
+                logItem.innerHTML = `<span class="error-log-time">[${time}]</span>${String(message).replace(/\n/g, '<br>')}`;
+                errorContent.appendChild(logItem);
+                errorContent.scrollTop = errorContent.scrollHeight;
+                
+                // エラーログを自動で展開
+                if (errorConsole.classList.contains('collapsed')) {
+                    errorConsole.classList.remove('collapsed');
+                }
+                
+                // トグルボタンにエラー数を表示
+                updateToggleButton();
+            }
+
+            function updateToggleButton() {
+                toggleBtn.textContent = `🐛 エラーログ${errorCount > 0 ? ` (${errorCount})` : ''}`;
+            }
+
+            toggleBtn.addEventListener('click', () => {
+                errorConsole.classList.toggle('collapsed');
+            });
+
+            clearBtn.addEventListener('click', () => {
+                errorContent.innerHTML = '';
+                errorCount = 0;
+                updateToggleButton();
+            });
+
+            // window.onerror でエラーをキャッチ
+            window.addEventListener('error', (event) => {
+                const message = `${event.message}\n${event.filename}:${event.lineno}:${event.colno}`;
+                if (event.error && event.error.stack) {
+                    addErrorLog(`${message}\n${event.error.stack}`, 'error');
+                } else {
+                    addErrorLog(message, 'error');
+                }
+            });
+
+            // Promise rejection をキャッチ
+            window.addEventListener('unhandledrejection', (event) => {
+                const message = `Unhandled Promise Rejection: ${event.reason}`;
+                addErrorLog(message, 'error');
+            });
+
+            // console.error をオーバーライド
+            const originalError = console.error;
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                addErrorLog(args.map(arg => {
+                    if (typeof arg === 'object') {
+                        try {
+                            return JSON.stringify(arg, null, 2);
+                        } catch (e) {
+                            return String(arg);
+                        }
+                    }
+                    return String(arg);
+                }).join(' '), 'error');
+            };
+
+            // console.warn をオーバーライド
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                originalWarn.apply(console, args);
+                addErrorLog(args.map(arg => {
+                    if (typeof arg === 'object') {
+                        try {
+                            return JSON.stringify(arg, null, 2);
+                        } catch (e) {
+                            return String(arg);
+                        }
+                    }
+                    return String(arg);
+                }).join(' '), 'warn');
+            };
+        })();
+    </script>
+
+    <script src="plants/kocho.js"></script>
+    <script src="plants/side.js"></script>
+    <script src="plants/hana.js"></script>
+    <script src="plants/nagi.js"></script>
+    <script src="plants/kane.js"></script>
+    <script src="plants/here.js"></script>
+    <script src="plants/aqua.js"></script>
+    <script src="plants/rezo.js"></script>
+    <script src="plants/dai.js"></script>
+    <script src="plants/rete.js"></script>
+    <script src="plants/tribu.js"></script>
+    <script src="plants/kokyu.js"></script>
+    <script src="plants/kuryu.js"></script>
+    <script src="plants/babel.js"></script>
+    <script src="game-state.js"></script>
+    <script src="game-loop.js"></script>
+    <script src="ui-controls.js"></script>
+    <script src="shop-system.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
